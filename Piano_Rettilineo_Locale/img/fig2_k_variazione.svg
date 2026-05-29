@@ -1,0 +1,79 @@
+<svg width="800" height="360" viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" style="background:#faf9f6;font-family:Georgia,serif;">
+<!-- titolo -->
+<text x="400" y="22" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1814">Fattore k_proj in funzione della distanza dal meridiano centrale</text>
+<!-- assi -->
+<rect x="70" y="40" width="420" height="260" fill="none" stroke="#d8d4cc" stroke-width="0.5"/>
+<!-- griglia Y -->
+<line x1="70" y1="40"  x2="490" y2="40"  stroke="#eee" stroke-width="0.5"/>
+<line x1="70" y1="105" x2="490" y2="105" stroke="#eee" stroke-width="0.5"/>
+<line x1="70" y1="170" x2="490" y2="170" stroke="#eee" stroke-width="0.5"/>
+<line x1="70" y1="235" x2="490" y2="235" stroke="#eee" stroke-width="0.5"/>
+<line x1="70" y1="300" x2="490" y2="300" stroke="#eee" stroke-width="0.5"/>
+<text x="62" y="44"  text-anchor="end" font-size="10" fill="#888" font-family="monospace">1.0006</text>
+<text x="62" y="109" text-anchor="end" font-size="10" fill="#888" font-family="monospace">1.0005</text>
+<text x="62" y="174" text-anchor="end" font-size="10" fill="#888" font-family="monospace">1.0004</text>
+<text x="62" y="239" text-anchor="end" font-size="10" fill="#888" font-family="monospace">1.0003</text>
+<text x="62" y="304" text-anchor="end" font-size="10" fill="#888" font-family="monospace">k₀=0.9996</text>
+<!-- griglia X -->
+<line x1="70"  y1="40" x2="70"  y2="300" stroke="#eee" stroke-width="0.5"/>
+<line x1="196" y1="40" x2="196" y2="300" stroke="#eee" stroke-width="0.5"/>
+<line x1="322" y1="40" x2="322" y2="300" stroke="#eee" stroke-width="0.5"/>
+<line x1="448" y1="40" x2="448" y2="300" stroke="#eee" stroke-width="0.5"/>
+<text x="70"  y="318" text-anchor="middle" font-size="10" fill="#888">0 km</text>
+<text x="196" y="318" text-anchor="middle" font-size="10" fill="#888">100 km</text>
+<text x="322" y="318" text-anchor="middle" font-size="10" fill="#888">200 km</text>
+<text x="448" y="318" text-anchor="middle" font-size="10" fill="#888">300 km</text>
+<!-- curva k_proj (pre-calcolata Python-style) -->
+<!-- k_proj(dE_km) = 0.9996*(1 + (dE*1000)^2/(2*6371000^2*0.9996^2))
+     scala: x = 70 + 420*(dE_km/334),  y = 300 - 260*(k-0.9996)/0.0006 -->
+<polyline fill="none" stroke="#E24B4A" stroke-width="2.5"
+  points="
+  70,300
+  82.6,299.7 95.2,298.8 107.8,297.3 120.4,295.2 133,292.6
+  145.6,289.3 158.2,285.5 170.8,281.1 183.4,276.1 196,270.6
+  208.6,264.5 221.2,257.9 233.8,250.7 246.4,243.0 259,234.8
+  271.6,226.1 284.2,216.9 296.8,207.2 309.4,197.0 322,186.3
+  334.6,175.2 347.2,163.6 359.8,151.5 372.4,139.0 385,126.0
+  397.6,112.6 410.2,98.8 422.8,84.5 435.4,69.8 448,54.7
+  460.6,39.2 473.2,23.3 485.8,7.0
+  "/>
+<!-- marker k₀ = 0.9996 line -->
+<line x1="70" y1="300" x2="490" y2="300" stroke="#999" stroke-width="0.5" stroke-dasharray="4 3"/>
+<!-- ── Marker zone Veneto ── -->
+<!-- Padova/Chioggia: dE=238 km → x=70+420*238/334=369.7, k=1.0001878 → y=300-260*1878/6000=218.5 -->
+<circle cx="369" cy="219" r="6" fill="#7F77DD" stroke="#fff" stroke-width="1.5"/>
+<line x1="369" y1="40" x2="369" y2="219" stroke="#7F77DD" stroke-width="1" stroke-dasharray="4 2"/>
+<text x="375" y="215" font-size="10" fill="#7F77DD">Padova (K=1.000186)</text>
+<!-- Verona: dE=158 km → x=70+420*158/334=268.5, k=1.0000833 → y=300-260*833/6000=263.8 -->
+<circle cx="268" cy="264" r="6" fill="#1D9E75" stroke="#fff" stroke-width="1.5"/>
+<line x1="268" y1="40" x2="268" y2="264" stroke="#1D9E75" stroke-width="1" stroke-dasharray="4 2"/>
+<text x="198" y="260" font-size="10" fill="#1D9E75">Verona (K=1.000074)</text>
+<!-- Merid. centrale: x=70, y=300 -->
+<circle cx="70" cy="300" r="6" fill="#BA7517" stroke="#fff" stroke-width="1.5"/>
+<text x="76" y="296" font-size="10" fill="#BA7517">9°E (k₀=0.9996)</text>
+<!-- assi label -->
+<text x="280" y="340" text-anchor="middle" font-size="11" fill="#5a5750">Distanza dal meridiano centrale (km)</text>
+<text x="20" y="170" text-anchor="middle" font-size="11" fill="#5a5750" transform="rotate(-90 20 170)">k_proj</text>
+<!-- ── Pannello risultati ── -->
+<rect x="520" y="40" width="262" height="200" rx="6" fill="#f2f0eb" stroke="#d8d4cc" stroke-width="0.5"/>
+<text x="534" y="62" font-size="12" font-weight="bold" fill="#1a1814">Zone del Veneto</text>
+<!-- riga Padova -->
+<circle cx="536" cy="82" r="4" fill="#7F77DD"/>
+<text x="548" y="86" font-size="10" fill="#5a5750">Padova / Chioggia</text>
+<text x="534" y="100" font-size="10" fill="#888" font-family="monospace">  dE=238 km  h=10 m</text>
+<text x="534" y="114" font-size="11" font-weight="bold" fill="#7F77DD" font-family="monospace">  K = 1.0001862</text>
+<!-- riga Verona -->
+<circle cx="536" cy="134" r="4" fill="#1D9E75"/>
+<text x="548" y="138" font-size="10" fill="#5a5750">Verona</text>
+<text x="534" y="152" font-size="10" fill="#888" font-family="monospace">  dE=158 km  h=60 m</text>
+<text x="534" y="166" font-size="11" font-weight="bold" fill="#1D9E75" font-family="monospace">  K = 1.0000739</text>
+<!-- riga merid -->
+<circle cx="536" cy="186" r="4" fill="#BA7517"/>
+<text x="548" y="190" font-size="10" fill="#5a5750">Meridiano centrale (9°E)</text>
+<text x="534" y="204" font-size="10" fill="#888" font-family="monospace">  dE=0 km  h=0 m</text>
+<text x="534" y="218" font-size="11" font-weight="bold" fill="#BA7517" font-family="monospace">  K = 0.9996000</text>
+<!-- note formula -->
+<rect x="520" y="256" width="262" height="44" rx="4" fill="#f2f0eb" stroke="#d8d4cc" stroke-width="0.5"/>
+<text x="534" y="272" font-size="10" fill="#888" font-family="monospace">k_proj = k₀·[1 + ΔE²/(2R²k₀²)]</text>
+<text x="534" y="288" font-size="10" fill="#888" font-family="monospace">K = k_proj · k_h = k_proj · R/(R+h)</text>
+</svg>

@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piano Rettilineo Locale — Teoria e Implementazione QGIS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --pr:  #7F77DD; --utm: #E24B4A; --topo: #BA7517;
+  --ell: #1D9E75; --ink: #1a1814; --sub: #5a5750;
+  --bg:  #faf9f6; --bg2: #f2f0eb; --rule: #d8d4cc;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --mono:  'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--serif);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: 16px;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 60px 48px 80px;
+}
+
+/* ── Testata ─── */
+header {
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 28px 0 22px;
+  margin-bottom: 48px;
+}
+.kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--sub);
+  margin-bottom: 10px;
+}
+h1 {
+  font-size: 2.2rem;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+h1 strong { font-weight: 600; }
+.subtitle {
+  font-size: .95rem;
+  color: var(--sub);
+  font-style: italic;
+}
+
+/* ── Sezioni ─── */
+section { margin-bottom: 52px; }
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 24px 0 10px;
+}
+p { margin-bottom: 14px; color: var(--ink); }
+p:last-child { margin-bottom: 0; }
+
+/* ── Formule ─── */
+.formula-block {
+  background: var(--bg2);
+  border-left: 3px solid var(--pr);
+  padding: 16px 22px;
+  margin: 20px 0;
+  border-radius: 0 6px 6px 0;
+  font-family: var(--mono);
+  font-size: .88rem;
+  line-height: 1.9;
+}
+.formula-block .comment {
+  color: var(--sub);
+  font-size: .8rem;
+}
+.formula-inline {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: var(--bg2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--pr);
+}
+
+/* ── Tavola comparazione K ─── */
+.k-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+  margin: 20px 0;
+}
+.k-table th {
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 14px;
+  text-align: left;
+  font-weight: 400;
+  font-family: var(--mono);
+  font-size: .8rem;
+}
+.k-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.k-table tr:nth-child(even) td { background: var(--bg2); }
+.k-table .num { font-family: var(--mono); color: var(--pr); }
+.k-table .zone { font-weight: 600; }
+
+/* ── Workflow steps ─── */
+.steps { list-style: none; margin: 20px 0; }
+.steps li {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: .75rem;
+  margin-top: 2px;
+}
+.step-body { flex: 1; }
+.step-title { font-weight: 600; margin-bottom: 3px; }
+.step-desc { font-size: .9rem; color: var(--sub); line-height: 1.55; }
+
+/* ── Variabili progetto ─── */
+.var-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0;
+}
+.var-card {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.var-name {
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--pr);
+  font-weight: 500;
+}
+.var-desc {
+  font-size: .82rem;
+  color: var(--sub);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+.var-card.removed {
+  opacity: .45;
+  text-decoration: line-through;
+}
+.var-card.removed .var-name { color: var(--sub); }
+
+/* ── Badge pillole ─── */
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .72rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.badge-pr  { background: var(--pr)22;  color: var(--pr);  }
+.badge-utm { background: var(--utm)22; color: var(--utm); }
+.badge-ell { background: var(--ell)22; color: var(--ell); }
+
+/* ── Figura wrapper ─── */
+.fig {
+  margin: 28px 0;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.fig-cap {
+  background: var(--bg2);
+  padding: 8px 16px;
+  font-size: .82rem;
+  color: var(--sub);
+  font-style: italic;
+  border-top: 1px solid var(--rule);
+}
+.fig-inner { padding: 0; background: var(--bg); }
+.fig-inner svg { display: block; }
+
+/* ── Nota a fondo ─── */
+.nota {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 14px 18px;
+  font-size: .88rem;
+  color: var(--sub);
+  margin-top: 16px;
+}
+.nota strong { color: var(--ink); }
+
+/* ── Footer ─── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  font-size: .8rem;
+  color: var(--sub);
+  font-family: var(--mono);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── Interattivo slider ─── */
+.slider-row {
+  display: flex; align-items: center; gap: 12px;
+  font-size: .85rem; color: var(--sub);
+  margin: 10px 0 4px;
+}
+.slider-row input[type=range] { flex:1; accent-color: var(--pr); }
+.slider-val { font-family: var(--mono); color: var(--pr); min-width: 70px; }
+
+/* ── Animazione ─── */
+@keyframes dash-r { to { stroke-dashoffset: -24; } }
+.dash-r { stroke-dasharray:5 5; animation: dash-r 1.8s linear infinite; }
+@media print {
+  .no-print { display: none; }
+  body { font-size: 14px; }
+  .page { padding: 20px 30px; }
+  canvas { display: none; }
+  .fig-inner.animated::after {
+    content: '[Figura animata — vedere versione digitale]';
+    display: block; padding: 30px; text-align: center;
+    font-style: italic; color: var(--sub); background: var(--bg2);
+  }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="kicker">Nota tecnica — QGIS Processing</div>
+  <h1><strong>Piano Rettilineo Locale</strong><br>Teoria e implementazione in QGIS</h1>
+  <p class="subtitle">Trasformazione coordinate UTM → piano locale con fattore di scala K combinato</p>
+</header>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="introduzione">
+<h2>1 · Introduzione</h2>
+<p>Le coordinate UTM (Universal Transverse Mercator) sono coordinate piane rettilinee, ma le <em>distanze calcolate sulla griglia</em> non corrispondono alle distanze reali misurate sul terreno. <br>Due effetti si sommano:</p>
+<ul style="margin:10px 0 14px 24px; line-height:1.9;">
+  <li><strong>Distorsione di proiezione</strong> — la proiezione cilindrica UTM introduce un fattore di scala <span class="formula-inline">k_proj</span> che varia con la distanza dal meridiano centrale.</li>
+  <li><strong>Riduzione altimetrica</strong> — le misure su terreno a quota <span class="formula-inline">h</span> devono essere riportate all'ellissoide tramite <span class="formula-inline">k_h</span>.</li>
+</ul>
+<p>Il <strong>piano rettilineo locale</strong> è il piano tangente all'ellissoide nel punto di origine scelto dall'operatore. In esso le distanze coincidono con quelle reali al suolo, applicando il fattore combinato :
+<div class="formula-block">
+
+<span class="formula-inline">K = k_proj · k_h</span>.
+</div>
+</p>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="piani">
+<h2>2 · I tre piani di riferimento</h2>
+<p>In un rilievo GNSS convivono tre superfici di misura distinte, geometricamente <em>sghembe</em> tra loro:</p>
+
+<div class="fig">
+  <div class="fig-inner">
+<!-- SVG STATICO V3 -->
+<svg width="100%" viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="ar" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M8 1L2 5L8 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+<!-- Terra -->
+<path d="M80 296 Q230 240 340 246 Q450 252 600 296 L600 340 L80 340 Z" fill="#1D9E75" opacity=".12"/>
+<!-- Ellissoide -->
+<path d="M80 296 Q230 240 340 246 Q450 252 600 296" fill="none" stroke="#1D9E75" stroke-width="2.5"/>
+<!-- Topo -->
+<path d="M80 272 Q160 263 230 266 Q300 270 340 236 Q390 208 460 222 Q520 236 600 226" fill="none" stroke="#BA7517" stroke-width="2" stroke-dasharray="7 3"/>
+<!-- UTM -->
+<line x1="80" y1="282" x2="600" y2="236" stroke="#E24B4A" stroke-width="2"/>
+<!-- PR -->
+<line x1="80" y1="246" x2="600" y2="246" stroke="#7F77DD" stroke-width="2.5"/>
+<!-- A B O -->
+<circle cx="160" cy="246" r="5" fill="#7F77DD"/>
+<circle cx="520" cy="246" r="5" fill="#7F77DD"/>
+<circle cx="340" cy="246" r="6" fill="#7F77DD" opacity=".5"/>
+<text x="160" y="262" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#7F77DD">A</text>
+<text x="520" y="262" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#7F77DD">B</text>
+<text x="340" y="236" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#7F77DD">O (origine)</text>
+<!-- linee verticali -->
+<line x1="160" y1="250" x2="160" y2="297" stroke="#bbb" stroke-width="0.5" stroke-dasharray="3 2"/>
+<line x1="520" y1="250" x2="520" y2="297" stroke="#bbb" stroke-width="0.5" stroke-dasharray="3 2"/>
+<!-- bracket d_PR -->
+<line x1="160" y1="150" x2="520" y2="150" stroke="#7F77DD" stroke-width="2" marker-end="url(#a)" marker-start="url(#ar)"/>
+<line x1="160" y1="144" x2="160" y2="156" stroke="#7F77DD" stroke-width="1.5"/>
+<line x1="520" y1="144" x2="520" y2="156" stroke="#7F77DD" stroke-width="1.5"/>
+<rect x="270" y="138" width="80" height="18" rx="3" fill="#faf9f6"/>
+<text x="310" y="150" text-anchor="middle" dominant-baseline="central" font-family="Georgia,serif" font-size="11" font-weight="bold" fill="#7F77DD">d_PR</text>
+<!-- bracket d_UTM -->
+<line x1="160" y1="178" x2="526" y2="178" stroke="#E24B4A" stroke-width="2" marker-end="url(#a)" marker-start="url(#ar)"/>
+<line x1="160" y1="172" x2="160" y2="184" stroke="#E24B4A" stroke-width="1.5"/>
+<line x1="526" y1="172" x2="526" y2="184" stroke="#E24B4A" stroke-width="1.5"/>
+<rect x="256" y="166" width="108" height="18" rx="3" fill="#faf9f6"/>
+<text x="310" y="178" text-anchor="middle" dominant-baseline="central" font-family="Georgia,serif" font-size="11" font-weight="bold" fill="#E24B4A">d_UTM &gt; d_PR</text>
+<!-- bracket d_topo -->
+<line x1="160" y1="206" x2="511" y2="206" stroke="#BA7517" stroke-width="2" marker-end="url(#a)" marker-start="url(#ar)"/>
+<line x1="160" y1="200" x2="160" y2="212" stroke="#BA7517" stroke-width="1.5"/>
+<line x1="511" y1="200" x2="511" y2="212" stroke="#BA7517" stroke-width="1.5"/>
+<rect x="246" y="194" width="128" height="18" rx="3" fill="#faf9f6"/>
+<text x="310" y="206" text-anchor="middle" dominant-baseline="central" font-family="Georgia,serif" font-size="11" font-weight="bold" fill="#BA7517">d_terreno ≈ d_PR</text>
+<!-- quota h -->
+<line x1="566" y1="246" x2="566" y2="276" stroke="#1D9E75" stroke-width="1" marker-end="url(#a)" marker-start="url(#ar)"/>
+<text x="576" y="264" font-family="Georgia,serif" font-size="11" fill="#1D9E75">h</text>
+<!-- legenda -->
+<rect x="18" y="26" width="192" height="108" rx="5" fill="#f2f0eb" stroke="#d8d4cc" stroke-width="0.5"/>
+<text x="30" y="46" font-family="Georgia,serif" font-size="11" font-weight="bold" fill="#1a1814">Piani di riferimento</text>
+<line x1="30" y1="64" x2="52" y2="64" stroke="#7F77DD" stroke-width="2.5"/>
+<text x="60" y="68" font-family="Georgia,serif" font-size="10" fill="#5a5750">Piano rettilineo locale</text>
+<line x1="30" y1="84" x2="52" y2="84" stroke="#E24B4A" stroke-width="2"/>
+<text x="60" y="88" font-family="Georgia,serif" font-size="10" fill="#5a5750">Griglia UTM</text>
+<line x1="30" y1="104" x2="52" y2="104" stroke="#BA7517" stroke-width="2" stroke-dasharray="7 3"/>
+<text x="60" y="108" font-family="Georgia,serif" font-size="10" fill="#5a5750">Piano topografico</text>
+<line x1="30" y1="124" x2="52" y2="124" stroke="#1D9E75" stroke-width="2.5"/>
+<text x="60" y="128" font-family="Georgia,serif" font-size="10" fill="#5a5750">Ellissoide GRS80</text>
+<!-- formula K -->
+<rect x="456" y="26" width="210" height="68" rx="5" fill="#f2f0eb" stroke="#d8d4cc" stroke-width="0.5"/>
+<text x="468" y="48" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#1a1814">K = k_proj · k_h</text>
+<text x="468" y="66" font-family="Georgia,serif" font-size="10" fill="#5a5750">k_proj = f(E − merid. centrale)</text>
+<text x="468" y="84" font-family="Georgia,serif" font-size="10" fill="#5a5750">k_h = R / (R + h)</text>
+<!-- titolo -->
+<text x="340" y="18" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#1a1814">Confronto piani di riferimento geodetico</text>
+<!-- nota -->
+<text x="340" y="328" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#999">d_terreno &lt; d_PR ≤ d_UTM — Veneto: K ≈ 1.00014 · correzione ≈ 14 cm/km</text>
+</svg>
+  </div>
+  <div class="fig-cap">Fig. 1 — I tre piani di riferimento: piano rettilineo locale (viola), griglia UTM (rosso), piano topografico (ambra) ed ellissoide GRS80 (verde). Le distanze d_PR, d_UTM e d_terreno differiscono per il fattore K.</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="formule">
+<h2>3 · Formule</h2>
+
+<h3>3.1 Fattore di scala della proiezione UTM</h3>
+<p>Il fattore di scala <span class="formula-inline">k_proj</span> dipende dalla distanza <span class="formula-inline">ΔE = E − 500 000</span> dal meridiano centrale della zona UTM:</p>
+
+<div class="formula-block">
+k_proj(E) = k₀ · [ 1 + ΔE² / (2R²k₀²) ]
+<div class="comment">dove  k₀ = 0.9996  (scala nominale UTM),  R = 6 371 000 m,  ΔE = E − 500 000 m</div>
+</div>
+
+<p>Proprietà chiave: <span class="formula-inline">k_proj</span> dipende <strong>solo da E</strong>, non da N. Un rilievo N-S ha k costante; un rilievo E-O ha k variabile.</p>
+
+<div class="nota">
+<strong>Nota — Approssimazione di Taylor al 2° ordine:</strong>
+la formula adottata è l'espansione della formula Transverse Mercator sferica completa:<br>
+<div class="formula-block">
+k_TM(ΔE) = k₀ · cosh( ΔE / (R · k₀) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= k₀ · [1 + ΔE²/(2R²k₀²) + ΔE⁴/(24R⁴k₀⁴) + …]
+</div>
+Il termine trascurato (4° ordine) per ΔE = 300 km vale ≈ 0.09 ppm — trascurabile per qualsiasi applicazione pratica.
+Nella formulazione ellissoidale rigorosa (GRS80), R è sostituito dal raggio di curvatura N(φ), introducendo una dipendenza dalla latitudine <u>qui omessa</u>.
+
+</div>
+
+
+<h3>3.2 Riduzione altimetrica</h3>
+<p>Le distanze al suolo a quota <span class="formula-inline">h</span> devono essere ridotte all'ellissoide:</p>
+
+<div class="formula-block">
+k_h = R / (R + h)
+<div class="comment">h = quota ellissoidale media del rilievo (m)</div>
+</div>
+
+<h3>3.3 Fattore combinato K</h3>
+<div class="formula-block">
+K = k_proj · k_h
+</div>
+
+<h3>3.4 Trasformazione coordinate UTM → Piano rettilineo</h3>
+<p>Definita l'origine <span class="formula-inline">(E₀, N₀)</span>, le coordinate nel piano locale sono:</p>
+
+<div class="formula-block">
+x_piano = (E_UTM − E₀) / K<br>
+y_piano = (N_UTM − N₀) / K
+</div>
+
+<h3>3.5 Metodo ECEF→ENU (implementato nell'azione QGIS - Setup 0,0,0 Piano Rettilineo)</h3>
+<p>Il fattore K descrive la relazione UTM→locale nel formalismo topografico classico (sezione 3.4). L'implementazione ECEF→ENU costituisce la formulazione geocentrica rigorosa dello stesso concetto: la rotazione della terna geocentrica incorpora automaticamente curvatura ellissoidale e riduzione altimetrica, rendendo superflua l'applicazione esplicita di  <span class="formula-inline">K</span>.<br>
+I campi <span class="formula-inline">local_e</span> e <span class="formula-inline">local_n</span> sono quindi equivalenti a <span class="formula-inline">x_piano</span> e <span class="formula-inline">y_piano</span>, ma calcolati senza approssimazioni intermedie.</p>
+<p>La procedura QGIS predisposta utilizza la trasformazione rigorosa Geocentrica→ENU, che non richiede K esplicito perché incorpora automaticamente curvatura e riduzione:</p>
+
+<div class="formula-block">
+[X,Y,Z]_ECEF  ← geodeticToECEF(lat, lon, h)<br>
+
+dX = X_rover − X_base<br>
+dY = Y_rover − Y_base<br>
+dZ = Z_rover − Z_base<br>
+
+local_e =  −sinλ·dX  +  cosλ·dY<br>
+local_n =  −sinφ·cosλ·dX  −  sinφ·sinλ·dY  +  cosφ·dZ<br>
+local_u =   cosφ·cosλ·dX  +  cosφ·sinλ·dY  +  sinφ·dZ<br>
+<div class="comment">φ,λ = lat,lon del punto base (origine)  —  ellissoide GRS80</div>
+</div>
+
+<p>La quota differenziale <span class="formula-inline">local_dH</span> usa il modello geoidico ITALGEO2005:</p>
+
+<div class="formula-block">
+local_dH = H_orto_rover − H_orto_base<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (h_rover − N_geoid_rover) − LOCAL_Q_ORTHO
+<div class="comment">LOCAL_Q_ORTHO = h_elliss − N_geoid (quota ortometrica origine, ITALGEO2005 GK2)
+GK2 6706 RDN2008 per fix RTK (fix_quality=4), <br>GK2 4258 ETRS89 per float (fix_quality=5)</div>
+</div>
+<div class="nota">
+<strong>Fix Quality e modello geoidico:</strong>
+In un rilievo RTK/NRTK il ricevitore GNSS lavora in modalità Float RTK (fix_quality = 5) quando ha ricevuto le correzioni differenziali dalla stazione base (o dalla rete NTRIP) ma non ha ancora risolto le ambiguità intere di fase portante (stimazione reale tramite minimi quadrati — algoritmo LAMBDA). <br>
+<br>
+
+La precisione planimetrica in Float RTK è tipicamente 20–50 cm (1σ), significativamente inferiore al centimetro del Fix RTK (fix_quality = 4).<br>
+Il Float si verifica normalmente:<br>
+
+- nella fase di inizializzazione del ricevitore (convergenza, da pochi secondi a qualche minuto);<br>
+- in presenza di mascheramenti satellitari parziali (edifici, vegetazione);<br>
+- quando il numero di satelliti visibili scende sotto la soglia critica per il fixing.<br>
+È da ritenersi corretto utilizzare in Float RTK il modello geoidico ITALGEO2005 GK2 in EPSG 4258 (ETRS89), coerentemente con la minore precisione altimetrica attesa. In Fix RTK viene applicato il modello in EPSG 6706 (RDN2008), realizzazione nazionale italiana di ETRS89 e datum di riferimento delle reti NTRIP italiane più diffuse.
+</div>
+
+
+<h3>3.6 Variazione di K in funzione di E e h</h3>
+<p>La figura interattiva seguente mostra come <span class="formula-inline">k_proj</span> cresce con la distanza dal meridiano centrale, e come la quota influisce su <span class="formula-inline">k_h</span>:</p>
+
+<div class="fig">
+<div class="fig-inner" style="padding:16px;">
+<canvas id="kcanvas" width="760" height="280" style="width:100%;display:block;"></canvas>
+<div class="slider-row no-print">
+  <span>E dal meridiano centrale (km)</span>
+  <input type="range" id="e2" min="0" max="334" value="200" step="1">
+  <span class="slider-val" id="e2v">200 km</span>
+</div>
+<div class="slider-row no-print">
+  <span>Quota media h (m slm)</span>
+  <input type="range" id="h2" min="0" max="3000" value="50" step="10">
+  <span class="slider-val" id="h2v">50 m</span>
+</div>
+</div>
+<div class="fig-cap">Fig. 2 — Variazione di K in funzione della distanza dal meridiano centrale e della quota. Slider interattivi.</div>
+</div>
+
+<table class="k-table">
+<thead><tr><th>Zona / area</th><th>E (km)</th><th>h (m)</th><th>k_proj</th><th>k_h</th><th>K totale</th><th>Δd / km</th></tr></thead>
+<tbody>
+<tr><td class="zone">Padova / Chioggia</td><td class="num">238</td><td class="num">10</td><td class="num">1.0001878</td><td class="num">0.9999984</td><td class="num">1.0001862</td><td class="num">18.6 cm</td></tr>
+<tr><td class="zone">Vicenza</td><td class="num">200</td><td class="num">40</td><td class="num">1.0001330</td><td class="num">0.9999937</td><td class="num">1.0001267</td><td class="num">12.7 cm</td></tr>
+<tr><td class="zone">Verona</td><td class="num">158</td><td class="num">60</td><td class="num">1.0000833</td><td class="num">0.9999906</td><td class="num">1.0000739</td><td class="num">7.4 cm</td></tr>
+<tr><td class="zone">Cortina d'Ampezzo</td><td class="num">176</td><td class="num">1224</td><td class="num">1.0001036</td><td class="num">0.9998081</td><td class="num">0.9999118</td><td class="num">8.8 cm</td></tr>
+<tr><td class="zone">Meridiano centrale (9°E)</td><td class="num">0</td><td class="num">0</td><td class="num">0.9996000</td><td class="num">1.0000000</td><td class="num">0.9996000</td><td class="num">40.0 cm</td></tr>
+</tbody>
+</table>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="animazione">
+<h2>4 · Misura animata A→B</h2>
+<p>La figura seguente illustra la differenza tra le tre misure durante il progredire della misurazione da A a B. La distorsione è ingrandita per renderla visibile graficamente.</p>
+
+<div class="fig">
+<div class="fig-inner animated">
+<canvas id="acanvas" width="760" height="320" style="width:100%;display:block;"></canvas>
+<div class="slider-row no-print" style="margin:8px 16px 12px;">
+  <span>Velocità animazione</span>
+  <input type="range" id="aspeed" min="1" max="10" value="4" style="width:80px">
+  <button id="apause" style="padding:3px 12px;font-size:.8rem;cursor:pointer;">⏸ Pausa</button>
+  <span style="flex:1"></span>
+  <span style="font-size:.75rem;color:#999">* distorsione ×20 per visibilità</span>
+</div>
+</div>
+<div class="fig-cap">Fig. 3 — Animazione della misurazione A→B sui tre piani. I bracket crescono a velocità diverse: d_UTM (rosso) cresce più velocemente di d_PR (viola) per il fattore K.</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="azione">
+<h2>5 · L'azione QGIS: <em>Setup 0,0,0 Piano Rettilineo</em></h2>
+
+<p>La procedura QGIS predisposta è installata come <strong>Python Action</strong> (trigger: Canvas click) sul layer di rilievo. Al click su un punto il punto diventa l'origine del piano locale e tutti i record vengono ricalcolati.
+</p>
+
+<h3>5.1 Flusso operativo</h3>
+<ol class="steps">
+  <li><div class="step-num">1</div><div class="step-body"><span class="step-title">Click su un punto RTK Fix nel Map Canvas </span><span class="step-desc">Il punto cliccato diventa l'origine <code>(E₀, N₀, h₀)</code> del piano locale. Il dialogo si apre pre-compilato con le variabili di progetto salvate.</span></div></li>
+  <li><div class="step-num">2</div><div class="step-body"><span class="step-title">Dialogo Setup — configurazione campi </span><span class="step-desc">Combobox per selezionare i campi sorgente (lat, lon, H_elliss, Q_ortometrica). Campi output con validazione verde/rosso: verde = campo esiste, rosso = verrà creato.</span></div></li>
+  <li><div class="step-num">3</div><div class="step-body"><span class="step-title">Scelta proiezione locale </span><span class="step-desc"><strong>Transverse Mercator</strong> (conforme, angoli corretti — default) oppure <strong>Cassini-Soldner</strong> (non conforme, storica). Il PROJ string viene salvato in <code>LOCAL_PROJ</code>.</span></div></li>
+  <li><div class="step-num">4</div><div class="step-body"><span class="step-title">Calcolo ECEF→ENU su tutti i record </span><span class="step-desc">Per ogni feature: geodeticToECEF → dX,dY,dZ → rotazione ENU. Scrittura batch con <code>changeAttributeValues</code>. Progress bar durante l'elaborazione.</span></div></li>
+  <li><div class="step-num">5</div><div class="step-body"><span class="step-title">Export CSV + import come nuovo layer </span><span class="step-desc">Se la checkbox è attiva: esporta il layer completo in CSV (<code>_PR01.csv</code>, <code>_PR02.csv</code>, …) con separatore <code>;</code> e lo reimporta con X=LOCAL_X, Y=LOCAL_Y. Il CRS (PROJ string anonimo) viene applicato via <code>setCrs()</code> e serializzato inline nel .qgs.</span></div></li>
+</ol>
+<div class="fig">
+  <div class="fig-inner">
+    <center><img src="img/fig4_piano_rettilineo_dialog.png" alt="QGIS Dialog" style="width:50%;display:block;"></center>
+  </div>
+  <div class="fig-cap">Fig. 4 — Dialog predisposto in QGIS.
+</div>
+</div>
+<div class="nota">
+<p><strong>Come trasferire le azioni su un altro layer:</strong>
+
+
+A partire dal progetto <b><em>.qgs</em></b> predisposto è possible trasferire l'azione python a un diverso file rilevo GNSS
+con tasto destro sul layer → <em>Styles → Copy Style → Actions</em>,<br>
+
+
+<div class="fig">
+  <div class="fig-inner">
+    <center><img src="img/fig40_copy_style.png" alt="copy style" style="width:100%;display:block;"></center>
+  </div>
+  <div class="fig-cap">Copy Style.
+</div>
+</div>
+poi sul layer destinazione → <em>Styles → Paste Style → Actions</em>.
+<div class="fig">
+  <div class="fig-inner">
+    <center><img src="img/fig41_past_style.png" alt="past style" style="width:100%;display:block;"></center>
+  </div>
+  <div class="fig-cap">Past Style.
+  </div>
+</div>
+</p>
+</div>
+
+<h3>5.2 Campi calcolati nel layer</h3>
+<p>Al termine del SET il layer contiene i seguenti campi aggiuntivi (creati se mancanti):</p>
+
+<table class="k-table">
+<thead><tr><th>Campo</th><th>Tipo</th><th>Contenuto</th></tr></thead>
+<tbody>
+<tr><td class="num">LOCAL_LAT</td><td>Double</td><td>Latitudine origine (E₀)</td></tr>
+<tr><td class="num">LOCAL_LON</td><td>Double</td><td>Longitudine origine (E₀)</td></tr>
+<tr><td class="num">LOCAL_H_ELLIS</td><td>Double</td><td>Quota ellissoidale origine</td></tr>
+<tr><td class="num">LOCAL_Q_ORTHO</td><td>Double</td><td>Quota ortometrica in origine — calcolata con modello ITALGEO2005 GK2</td></tr>
+<tr><td class="num">LOCAL_X</td><td>Double</td><td>Coordinata E nel piano locale (m)</td></tr>
+<tr><td class="num">LOCAL_Y</td><td>Double</td><td>Coordinata N nel piano locale (m)</td></tr>
+<tr><td class="num">LOCAL_dH</td><td>Double</td><td>Differenza quota ortometrica rispetto all'origine</td></tr>
+<tr><td class="num">LOCAL_dH_mode</td><td>String</td><td><code>ORTHO</code> (GK2 RDN2008) oppure <code>ELLISS</code> (fallback)</td></tr>
+<tr><td class="num">LOCAL_dist2D</td><td>Double</td><td>Distanza planimetrica da origine = √(X²+Y²)</td></tr>
+</tbody>
+</table>
+
+<h3>5.3 Variabili di progetto QGIS utilizzate</h3>
+
+<div class="var-grid">
+  <div class="var-card"><div class="var-name">LOCAL_LAT / LOCAL_LON</div><div class="var-desc">Coordinate geografiche dell'origine corrente</div></div>
+  <div class="var-card"><div class="var-name">LOCAL_H_ELLIS</div><div class="var-desc">Quota ellissoidale origine</div></div>
+  <div class="var-card"><div class="var-name">LOCAL_Q_ORTHO</div><div class="var-desc">Quota ortometrica in origine — calcolata con il modello di ondulazione ITALGEO2005 GK2 (<code>h_elliss − N_geoid</code>)</div></div>
+  <div class="var-card"><div class="var-name">LOCAL_PROJ</div><div class="var-desc">PROJ string completo (+proj=tmerc …) — usato per il CRS del CSV importato</div></div>
+  <div class="var-card"><div class="var-name">LOCAL_F_LAT / LON / H_ELLIS / Q_ORTHO</div><div class="var-desc">Nomi dei campi sorgente nel layer</div></div>
+  <div class="var-card"><div class="var-name">LOCAL_F_X / Y / dH / dH_mode / dist2D</div><div class="var-desc">Nomi dei campi risultato</div></div>
+</div>
+
+<div class="nota">
+  <strong>Nota sul CRS del layer CSV:</strong> il PROJ string in <code>LOCAL_PROJ</code>
+  viene applicato via <code>QgsCoordinateReferenceSystem.createFromProj()</code>
+  creando un CRS anonimo (senza <code>USER:XXXXX</code>). QGIS serializza la definizione
+  completa inline nel file <code>.qgs</code> — il progetto è quindi portabile su qualsiasi
+  macchina senza configurazioni aggiuntive.
+</div>
+
+<div class="nota">
+
+<div class="fig">
+  <div class="fig-inner">
+    <center><img src="img/fig42_variabili_qgis.png" alt="variabili qgis" style="width:100%;display:block;"></center>
+  </div>
+  <div class="fig-cap">Fig. 4.2 — Pannello <em>Project Properties → Variables</em> con le variabili
+  <code>LOCAL_*</code> impostate dall'azione <em>Setup 0,0,0 Piano Rettilineo</em>.</div></div>
+</div>
+
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="esempio">
+<h2>6 · Esempio pratico — zona Veneto</h2>
+<p>Rilievo GNSS RTK in zona Padova (UTM 32N), quota media 10 m slm, distanza dal meridiano centrale 238 km:</p>
+
+<div class="formula-block">
+k_proj(238 km) = 0.9996 · [1 + (238000)² / (2 · 6371000² · 0.9996²)]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1.00018780<br>
+<br>
+k_h(10 m)      = 6371000 / (6371000 + 10)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 0.99999843<br>
+<br>
+K              = 1.00018780 · 0.99999843<br>
+&nbsp;&nbsp;&nbsp;= 1.00018623<br>
+
+Correzione su 1 km   : (K−1) · 1000 = 186 mm<br>
+Correzione su 12 km  : (K−1) · 12000 = 2.23 m<br>
+</div>
+
+<p>Un rilievo di 12 km in questa zona produce distanze UTM superiori di <strong>circa 2 m</strong> rispetto alle distanze nel piano locale (ridotte al piano tangente). <br>Il piano rettilineo locale elimina questa distorsione.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="altezza-ellissoidica">
+<h2>7 · Altezza ellissoidica, ondulazione geoidica e quota ortometrica</h2>
+
+<h3>7.1 Le tre quote</h3>
+<p>In geodesia si distinguono tre grandezze altimetriche distinte:</p>
+
+<div class="formula-block">
+h_elliss  =  quota ellissoidale       <span class="comment">[misurata dal GNSS rispetto a GRS80]</span><br>
+N_geoid   =  ondulazione del geoide   <span class="comment">[separazione geoide–ellissoide]</span><br>
+H_orto    =  quota ortometrica (slm)  =  h_elliss − N_geoid
+</div>
+
+<p>Il GNSS fornisce direttamente <span class="formula-inline">h_elliss</span>. La quota ortometrica — quella
+fisicamente significativa per un topografo, corrispondente al livello del mare — si ottiene
+sottraendo l'ondulazione del geoide.</p>
+
+
+<div class="fig">
+  <div class="fig-inner">
+    <img src="img/fig5_quote_geodetiche.png" alt="Relazione tra h_elliss, N_geoid e H_orto" style="width:100%;display:block;">
+  </div>
+  <div class="fig-cap">Fig. 5 — Le tre superfici di riferimento geodetico e le tre quote.
+  Il GNSS misura direttamente <code>h_elliss</code>;
+  sottraendo l'ondulazione <code>N_geoid</code> (da ITALGEO2005 GK2) si ottiene
+  la quota ortometrica <code>H_orto</code>.</div>
+</div>
+<h3>7.2 Il modello ITALGEO2005 GK2</h3>
+<p>Nella raccolta dei dati GNSS viene utilizzo il modello di ondulazione del geoide <strong>ITALGEO2005</strong>
+in formato griglia, ricavato dai file IGM  <span class="formula-inline">.gk2</span>:</p>
+
+<table class="k-table">
+<thead><tr><th>Variante</th><th>EPSG</th><th>Sistema di riferimento</th><th>Uso nel rilievo GNSS</th></tr></thead>
+<tbody>
+<tr><td>GK2 ETRS89</td><td class="num">4258</td><td>ETRS89</td><td>RTK Float (fix_quality = 5)</td></tr>
+<tr><td>GK2 RDN2008</td><td class="num">6706</td><td>RDN2008</td><td>RTK Fix (fix_quality = 4)</td></tr>
+</tbody>
+</table>
+
+<p>La scelta di applicare il modello più preciso (RDN2008) solo in condizione di Fix è
+intenzionale: la precisione centimetrica del Fix giustifica la correzione geoidica rigorosa,
+mentre in Float la precisione decimettrica rende la differenza tra i due modelli trascurabile.</p>
+
+<h3>7.3 Effetto sulla componente verticale</h3>
+<p>Il metodo ECEF→ENU calcola <span class="formula-inline">local_u</span> come differenza di quote <em>ellissoidali</em>:</p>
+
+<div class="formula-block">
+local_u ≈ h_elliss_rover − h_elliss_base
+</div>
+
+<p>Questo non coincide con la differenza di quote ortometriche se l'ondulazione del geoide
+varia tra i due punti:</p>
+
+<div class="formula-block">
+local_dH = H_orto_rover − H_orto_base<br>
+&nbsp;&nbsp;&nbsp;&nbsp;= (h_elliss_rover − N_rover) − (h_elliss_base − N_base)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;= local_u − (N_rover − N_base)<br>
+<span class="comment">ΔN = N_rover − N_base  →  variazione dell'ondulazione tra origine e punto rover</span>
+</div>
+
+<h3>7.4 Entità della correzione — zona Veneto</h3>
+
+<table class="k-table">
+<thead><tr><th>Scenario</th><th>ΔN tipico</th><th>Effetto su local_dH</th></tr></thead>
+<tbody>
+<tr><td>Baseline &lt; 10 km, pianura</td><td class="num">1–3 mm</td><td>trascurabile</td></tr>
+<tr><td>Baseline 30–50 km, NTRIP</td><td class="num">5–15 mm</td><td>borderline per precisione cm</td></tr>
+<tr><td>Costa → Dolomiti</td><td class="num">20–60 mm</td><td><strong>non trascurabile</strong></td></tr>
+<tr><td>Meridiano centrale → costa adriatica</td><td class="num">40–80 mm</td><td>significativo</td></tr>
+</tbody>
+</table>
+
+<h3>7.5 Come viene gestito nel progetto</h3>
+<p>Il calcolo di <span class="formula-inline">local_dH</span> è separato da quello planimetrico
+proprio per questo motivo:</p>
+
+<div class="formula-block">
+<span class="comment"># Componente planimetrica — usa h_elliss in ECEF→ENU (corretto)</span><br>
+local_e, local_n  ←  geodeticToECEF(lat, lon, h_elliss) → rotazione ENU<br>
+
+<span class="comment"># Componente verticale — usa quota ortometrica (rigorosa)</span><br>
+N_rover           ←  interpolaGK2_6706(lat_rover, lon_rover)<br>
+H_orto_rover       =  h_elliss_rover − N_rover<br>
+local_dH           =  H_orto_rover − LOCAL_Q_ORTHO<br>
+<span class="comment">LOCAL_Q_ORTHO = quota ortometrica origine, calcolata al SET 0,0,0 con GK2</span>
+</div>
+
+<h3>7.6 Componente planimetrica — perché non serve la quota ortometrica</h3>
+<p>Usare <span class="formula-inline">H_orto</span> al posto di
+<span class="formula-inline">h_elliss</span> in <span class="formula-inline">geodeticToECEF</span>
+<strong>non introduce alcun errore planimetrico</strong>.</p>
+
+<p>La dimostrazione è diretta: sostituire <span class="formula-inline">H_orto</span>
+introduce in ECEF un errore puramente radiale (lungo la normale all'ellissoide):</p>
+
+<div class="formula-block">
+ΔX = −N_geoid · cosφ · cosλ<br>
+ΔY = −N_geoid · cosφ · sinλ<br>
+ΔZ = −N_geoid · sinφ<br>
+</div>
+
+<p>Applicando la rotazione ENU a questo errore radiale:</p>
+
+<div class="formula-block">
+e_err = −sinλ·ΔX + cosλ·ΔY                            = 0         ← si annulla esattamente<br>
+n_err = −sinφcosλ·ΔX − sinφsinλ·ΔY + cosφ·ΔZ          = 0         ← si annulla esattamente<br>
+u_err =  cosφcosλ·ΔX + cosφsinλ·ΔY + sinφ·ΔZ           = −N_geoid  ← solo in verticale<br>
+</div>
+
+<p>Un errore radiale si proietta <strong>a zero in orizzontale</strong>
+e pari a <span class="formula-inline">−N_geoid</span> in verticale.
+Questo giustifica geometricamente la separazione nel calcolo:
+<span class="formula-inline">h_elliss</span> per la planimetria (ECEF→ENU)
+e il modello geoidico ITALGEO2005 GK2 per la quota ortometrica
+(<span class="formula-inline">local_dH</span>).
+I due calcoli sono indipendenti e complementari.</p>
+
+<div class="nota">
+<strong>Sintesi:</strong> la quota geoidica <em>non influisce sulla planimetria</em>.
+Influisce solo sul componente verticale <span class="formula-inline">local_dH</span>,
+dove viene applicata correttamente tramite ITALGEO2005 GK2.
+</div>
+
+</section>
+
+<footer>
+  <span>Piano Rettilineo Locale — Teoria e Implementazione QGIS<br>Mauro Bettella - bettellam@gmail.com - Claude AI</span>
+  <span id="date-footer"></span>
+</footer>
+
+</div>
+
+<!-- ════════════════ SCRIPT ════════════════ -->
+<script>
+document.getElementById('date-footer').textContent = new Date().toLocaleDateString('it-IT',{year:'numeric',month:'long',day:'numeric'});
+
+// ── Grafico K interattivo (Fig.2) ──────────────────
+const kc=document.getElementById('kcanvas');
+const kx=kc.getContext('2d');
+const R=6371000, k0=0.9996;
+function calcK(dE,h){
+  const kp=k0*(1+dE*dE/(2*R*R*k0*k0));
+  const kh=R/(R+h);
+  return{kp,kh,K:kp*kh};
+}
+function drawK(){
+  const dE=+document.getElementById('e2').value*1000;
+  const h=+document.getElementById('h2').value;
+  document.getElementById('e2v').textContent=(dE/1000).toFixed(0)+' km';
+  document.getElementById('h2v').textContent=h+' m';
+  const W=kc.width,H=kc.height;
+  kx.clearRect(0,0,W,H);
+  kx.fillStyle='#faf9f6'; kx.fillRect(0,0,W,H);
+  const gx=60,gy=30,gw=340,gh=210;
+  // assi
+  kx.strokeStyle='#d8d4cc'; kx.lineWidth=0.5; kx.strokeRect(gx,gy,gw,gh);
+  // griglia y
+  [0,.25,.5,.75,1].forEach(t=>{
+    const y=gy+gh*(1-t);
+    kx.beginPath(); kx.moveTo(gx,y); kx.lineTo(gx+gw,y);
+    kx.strokeStyle='#eee'; kx.lineWidth=0.5; kx.stroke();
+    kx.font='10px monospace'; kx.fillStyle='#888'; kx.textAlign='right';
+    kx.fillText((0.9996+t*0.0006).toFixed(4),gx-4,y+3);
+  });
+  // griglia x
+  [0,100,200,300].forEach(km=>{
+    const x=gx+gw*km/334;
+    kx.beginPath(); kx.moveTo(x,gy); kx.lineTo(x,gy+gh);
+    kx.strokeStyle='#eee'; kx.lineWidth=0.5; kx.stroke();
+    kx.font='10px monospace'; kx.fillStyle='#888'; kx.textAlign='center';
+    kx.fillText(km+'km',x,gy+gh+16);
+  });
+  // curva k_proj
+  kx.beginPath();
+  for(let km=0;km<=334;km+=2){
+    const {kp}=calcK(km*1000,0);
+    const x=gx+gw*km/334;
+    const y=gy+gh*(1-(kp-0.9996)/0.0006);
+    km===0?kx.moveTo(x,y):kx.lineTo(x,y);
+  }
+  kx.strokeStyle='#E24B4A'; kx.lineWidth=2; kx.stroke();
+  // k0 line
+  kx.beginPath(); kx.moveTo(gx,gy+gh); kx.lineTo(gx+gw,gy+gh);
+  kx.strokeStyle='#999'; kx.lineWidth=0.5; kx.setLineDash([4,3]); kx.stroke(); kx.setLineDash([]);
+  // linea verticale dE corrente
+  const xCurr=gx+gw*(dE/1000)/334;
+  kx.beginPath(); kx.moveTo(xCurr,gy); kx.lineTo(xCurr,gy+gh);
+  kx.strokeStyle='#E24B4A'; kx.lineWidth=1.5; kx.setLineDash([4,2]); kx.stroke(); kx.setLineDash([]);
+  const{kp}=calcK(dE,h);
+  const yCurr=gy+gh*(1-(kp-0.9996)/0.0006);
+  kx.beginPath(); kx.arc(xCurr,Math.min(yCurr,gy+gh-2),5,0,Math.PI*2);
+  kx.fillStyle='#E24B4A'; kx.fill();
+  kx.font='10px Georgia,serif'; kx.fillStyle='#555'; kx.textAlign='center';
+  kx.fillText('k_proj in funzione di E',gx+gw/2,gy-10);
+  kx.fillText('Distanza dal merid. centrale (km)',gx+gw/2,gy+gh+30);
+
+  // pannello K risultati
+  const{K,kh}=calcK(dE,h);
+  const px=gx+gw+40,py=gy;
+  const items=[
+    {l:'k_proj',v:kp.toFixed(7),c:'#E24B4A'},
+    {l:'k_h',v:kh.toFixed(7),c:'#1D9E75'},
+    {l:'K totale',v:K.toFixed(7),c:'#7F77DD'},
+    {l:'Δd / km',v:(Math.abs(1-K)*1e6/1000).toFixed(2)+' mm',c:'#7F77DD'},
+    {l:'Δd / 12 km',v:(Math.abs(1-K)*12000*1000).toFixed(1)+' mm',c:'#7F77DD'},
+  ];
+  kx.font='bold 12px Georgia,serif'; kx.fillStyle='#1a1814'; kx.textAlign='left';
+  kx.fillText('Fattori di scala calcolati',px,py+16);
+  items.forEach(({l,v,c},i)=>{
+    const y=py+34+i*36;
+    kx.fillStyle='#f2f0eb'; kx.fillRect(px,y,280,28);
+    kx.strokeStyle='#d8d4cc'; kx.lineWidth=0.5; kx.strokeRect(px,y,280,28);
+    kx.font='10px monospace'; kx.fillStyle='#888'; kx.textAlign='left';
+    kx.fillText(l,px+8,y+13);
+    kx.font='bold 13px monospace'; kx.fillStyle=c;
+    kx.fillText(v,px+8,y+26);
+  });
+}
+document.getElementById('e2').addEventListener('input',drawK);
+document.getElementById('h2').addEventListener('input',drawK);
+drawK();
+
+// ── Animazione Fig.3 ──────────────────────────────
+const ac=document.getElementById('acanvas');
+const ax=ac.getContext('2d');
+const AW=ac.width,AH=ac.height;
+let prog=0,dir=1,paused2=false;
+const KVIS=1.025;
+const COL2={pr:'#7F77DD',utm:'#E24B4A',topo:'#BA7517',ell:'#1D9E75',txt:'#1a1814',bg:'#faf9f6'};
+const AAX=110,ABX=560,AOX=335;
+const ELL=t=>276+26*Math.cos(Math.PI*(t-.5));
+const UTM=t=>271-t*10;
+const PR=()=>248;
+const TOPO=t=>ELL(t)-20-7*Math.sin(Math.PI*t*2.3+.4);
+function drawAnim(){
+  ax.clearRect(0,0,AW,AH);
+  ax.fillStyle=COL2.bg; ax.fillRect(0,0,AW,AH);
+  // Terra
+  ax.beginPath(); ax.moveTo(0,AH);
+  for(let x=0;x<=AW;x+=2){
+    const t=(x-AAX)/(ABX-AAX);
+    ax.lineTo(x,ELL(Math.max(0,Math.min(1,t)))+28);
+  }
+  ax.lineTo(AW,AH); ax.closePath();
+  ax.fillStyle=COL2.ell+'18'; ax.fill();
+  // Ellissoide
+  ax.beginPath();
+  for(let x=AAX-20;x<=ABX+20;x+=2){
+    const t=(x-AAX)/(ABX-AAX);
+    x===AAX-20?ax.moveTo(x,ELL(Math.max(0,Math.min(1,t)))):ax.lineTo(x,ELL(Math.max(0,Math.min(1,t))));
+  }
+  ax.strokeStyle=COL2.ell; ax.lineWidth=2; ax.stroke();
+  // Topo
+  ax.beginPath(); ax.setLineDash([6,3]);
+  for(let x=AAX-20;x<=ABX+20;x+=2){
+    const t=(x-AAX)/(ABX-AAX);
+    x===AAX-20?ax.moveTo(x,TOPO(Math.max(0,Math.min(1,t)))):ax.lineTo(x,TOPO(Math.max(0,Math.min(1,t))));
+  }
+  ax.strokeStyle=COL2.topo; ax.lineWidth=2; ax.stroke(); ax.setLineDash([]);
+  // UTM
+  ax.beginPath(); ax.moveTo(AAX-20,UTM(0)); ax.lineTo(ABX+20,UTM(1));
+  ax.strokeStyle=COL2.utm; ax.lineWidth=2; ax.stroke();
+  // PR
+  ax.beginPath(); ax.moveTo(AAX-20,PR()); ax.lineTo(ABX+20,PR());
+  ax.strokeStyle=COL2.pr; ax.lineWidth=2.5; ax.stroke();
+  // A B
+  [AAX,ABX].forEach((x,i)=>{
+    ax.beginPath(); ax.arc(x,PR(),5,0,Math.PI*2);
+    ax.fillStyle=i===0?COL2.pr:COL2.pr+'44'; ax.fill();
+    ax.font='bold 11px Georgia,serif'; ax.fillStyle=COL2.txt;
+    ax.textAlign='center'; ax.fillText(i===0?'A':'B',x,PR()+16);
+  });
+  // Punto mobile
+  const px2=AAX+(ABX-AAX)*prog;
+  const tN=(px2-AAX)/(ABX-AAX);
+  [PR(),UTM(tN),TOPO(Math.max(0,Math.min(1,tN)))].forEach((y,i)=>{
+    const c=[COL2.pr,COL2.utm,COL2.topo][i];
+    ax.beginPath(); ax.arc(px2,y,5+(!i?1:0),0,Math.PI*2);
+    ax.fillStyle=c; ax.fill();
+    ax.strokeStyle='#fff'; ax.lineWidth=1.5; ax.stroke();
+  });
+  // Bracket
+  const dT=ABX-AAX;
+  [[150,dT*prog,COL2.pr,'d_PR'],[176,dT*prog*KVIS,COL2.utm,'d_UTM'],[202,dT*prog/KVIS*.999,COL2.topo,'d_topo']].forEach(([y,d,c,l])=>{
+    if(d<4) return;
+    ax.beginPath(); ax.moveTo(AAX,y); ax.lineTo(AAX+d,y);
+    ax.strokeStyle=c; ax.lineWidth=2.5; ax.stroke();
+    [AAX,AAX+d].forEach(x=>{ ax.beginPath(); ax.moveTo(x,y-5); ax.lineTo(x,y+5); ax.strokeStyle=c; ax.lineWidth=1.5; ax.stroke(); });
+    if(d>50){ ax.font='bold 11px Georgia,serif'; ax.fillStyle=c; ax.textAlign='left'; ax.fillText(l,AAX+d+5,y+4); }
+  });
+  // diff label
+  if(prog>0.65){
+    const a=Math.min(1,(prog-.65)/.3);
+    ax.globalAlpha=a;
+    const d1=dT*prog, d2=dT*prog*KVIS;
+    ax.beginPath(); ax.moveTo(AAX+d1,176); ax.lineTo(AAX+d2,176);
+    ax.strokeStyle=COL2.utm; ax.lineWidth=4; ax.lineCap='round'; ax.stroke(); ax.lineCap='butt';
+    ax.font='9px monospace'; ax.fillStyle=COL2.utm; ax.textAlign='center';
+    ax.fillText('Δ='+(((d2-d1)/dT)*12000*1000).toFixed(0)+'mm/12km', AAX+(d1+d2)/2, 168);
+    ax.globalAlpha=1;
+  }
+  // labels piani
+  [{y:PR(),c:COL2.pr,t:'Piano rett.'},{y:UTM(.5),c:COL2.utm,t:'UTM'},{y:TOPO(.5),c:COL2.topo,t:'Topo.'},{y:ELL(.5),c:COL2.ell,t:'Elliss.'}].forEach(({y,c,t})=>{
+    ax.font='10px Georgia,serif'; ax.fillStyle=c; ax.textAlign='right';
+    ax.fillText(t,AAX-26,y+4);
+  });
+  ax.font='bold 11px Georgia,serif'; ax.fillStyle=COL2.txt; ax.textAlign='center';
+  ax.fillText('Misurazione A→B — confronto distanze sui tre piani (distorsione ×20)',AW/2,24);
+}
+function animLoop(){
+  if(paused2) return;
+  const s=+document.getElementById('aspeed').value*0.003;
+  prog+=dir*s;
+  if(prog>=1.05){prog=1.05;dir=-1;setTimeout(()=>{if(!paused2){dir=1;prog=-0.05;animLoop();}},1200);return;}
+  if(prog<=-0.05){prog=-0.05;dir=1;setTimeout(()=>{if(!paused2){prog=0;animLoop();}},400);return;}
+  drawAnim(); requestAnimationFrame(animLoop);
+}
+document.getElementById('apause').onclick=function(){
+  paused2=!paused2; this.textContent=paused2?'▶ Avvia':'⏸ Pausa';
+  if(!paused2) animLoop();
+};
+drawAnim(); animLoop();
+</script>
+</body>
+</html>
