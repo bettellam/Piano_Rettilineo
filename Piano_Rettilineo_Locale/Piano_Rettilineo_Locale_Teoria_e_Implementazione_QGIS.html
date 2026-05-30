@@ -270,6 +270,20 @@ footer {
   <p class="subtitle">Trasformazione coordinate UTM → piano locale con fattore di scala K combinato</p>
 </header>
 
+<div class="nota">
+  <strong>Indice</strong>
+  <ul style="margin:10px 0 16px 20px; padding:0; list-style:disc; color:var(--ink);">
+    <li><a href="#introduzione">1. Introduzione</a></li>
+    <li><a href="#piani">2. I tre piani di riferimento</a></li>
+    <li><a href="#formule">3. Formule</a></li>
+    <li><a href="#varchi">4. Variazione di K in funzione di E e h</a></li>
+    <li><a href="#confronto">5. Confronto distanze A→B</a></li>
+    <li><a href="#azione">6. L'azione QGIS: Setup 0,0,0</a></li>
+    <li><a href="#esempio">7. Esempio pratico — zona Veneto</a></li>
+    <li><a href="#altezza-ellissoidica">8. Altezza ellissoidica, ondulazione geoidica e quota ortometrica</a></li>
+    <li><a href="#progetto">9. Progetto QGis di esempio</a></li>
+  </ul>
+
 <!-- ═══════════════════════════════════════════════════ -->
 <section id="introduzione">
 <h2>1 · Introduzione</h2>
@@ -460,7 +474,10 @@ Il Float si verifica normalmente:<br>
 </div>
 
 
-<h3>3.6 Variazione di K in funzione di E e h</h3>
+</section>
+
+<section id="varchi">
+<h2>4 · Variazione di K in funzione di E e h</h2>
 <p>La figura interattiva seguente mostra come <span class="formula-inline">k_proj</span> cresce con la distanza dal meridiano centrale, e come la quota influisce su <span class="formula-inline">k_h</span>:</p>
 
 <div class="fig">
@@ -494,8 +511,8 @@ Il Float si verifica normalmente:<br>
 </section>
 
 <!-- ═══════════════════════════════════════════════════ -->
-<section id="animazione">
-<h2>4 · Misura animata A→B</h2>
+<section id="confronto">
+<h2>5 · Confronto distanze A→B</h2>
 <p>La figura seguente illustra la differenza tra le tre misure durante il progredire della misurazione da A a B. La distorsione è ingrandita per renderla visibile graficamente.</p>
 
 <div class="fig">
@@ -509,18 +526,18 @@ Il Float si verifica normalmente:<br>
   <span style="font-size:.75rem;color:#999">* distorsione ×20 per visibilità</span>
 </div>
 </div>
-<div class="fig-cap">Fig. 3 — Animazione della misurazione A→B sui tre piani. I bracket crescono a velocità diverse: d_UTM (rosso) cresce più velocemente di d_PR (viola) per il fattore K.</div>
+<div class="fig-cap">Fig. 3 — Confronto delle tre distanze A→B sui rispettivi piani. La distorsione è ingrandita per renderla visibile graficamente.</div>
 </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════ -->
 <section id="azione">
-<h2>5 · L'azione QGIS: <em>Setup 0,0,0 Piano Rettilineo</em></h2>
+<h2>6 · L'azione QGIS: <em>Setup 0,0,0 Piano Rettilineo</em></h2>
 
 <p>La procedura QGIS predisposta è installata come <strong>Python Action</strong> (trigger: Canvas click) sul layer di rilievo. Al click su un punto il punto diventa l'origine del piano locale e tutti i record vengono ricalcolati.
 </p>
 
-<h3>5.1 Flusso operativo</h3>
+<h3>6.1 Flusso operativo</h3>
 <ol class="steps">
   <li><div class="step-num">1</div><div class="step-body"><span class="step-title">Click su un punto RTK Fix nel Map Canvas </span><span class="step-desc">Il punto cliccato diventa l'origine <code>(E₀, N₀, h₀)</code> del piano locale. Il dialogo si apre pre-compilato con le variabili di progetto salvate.</span></div></li>
   <li><div class="step-num">2</div><div class="step-body"><span class="step-title">Dialogo Setup — configurazione campi </span><span class="step-desc">Combobox per selezionare i campi sorgente (lat, lon, H_elliss, Q_ortometrica). Campi output con validazione verde/rosso: verde = campo esiste, rosso = verrà creato.</span></div></li>
@@ -561,7 +578,7 @@ poi sul layer destinazione → <em>Styles → Paste Style → Actions</em>.
 </p>
 </div>
 
-<h3>5.2 Campi calcolati nel layer</h3>
+<h3>6.2 Campi calcolati nel layer</h3>
 <p>Al termine del SET il layer contiene i seguenti campi aggiuntivi (creati se mancanti):</p>
 
 <table class="k-table">
@@ -579,7 +596,7 @@ poi sul layer destinazione → <em>Styles → Paste Style → Actions</em>.
 </tbody>
 </table>
 
-<h3>5.3 Variabili di progetto QGIS utilizzate</h3>
+<h3>6.3 Variabili di progetto QGIS utilizzate</h3>
 
 <div class="var-grid">
   <div class="var-card"><div class="var-name">LOCAL_LAT / LOCAL_LON</div><div class="var-desc">Coordinate geografiche dell'origine corrente</div></div>
@@ -613,7 +630,7 @@ poi sul layer destinazione → <em>Styles → Paste Style → Actions</em>.
 
 <!-- ═══════════════════════════════════════════════════ -->
 <section id="esempio">
-<h2>6 · Esempio pratico — zona Veneto</h2>
+<h2>7 · Esempio pratico — zona Veneto</h2>
 <p>Rilievo GNSS RTK in zona Padova (UTM 32N), quota media 10 m slm, distanza dal meridiano centrale 238 km:</p>
 
 <div class="formula-block">
@@ -635,7 +652,7 @@ Correzione su 12 km  : (K−1) · 12000 = 2.23 m<br>
 
 <!-- ═══════════════════════════════════════════════════ -->
 <section id="altezza-ellissoidica">
-<h2>7 · Altezza ellissoidica, ondulazione geoidica e quota ortometrica</h2>
+<h2>8 · Altezza ellissoidica, ondulazione geoidica e quota ortometrica</h2>
 
 <h3>7.1 Le tre quote</h3>
 <p>In geodesia si distinguono tre grandezze altimetriche distinte:</p>
@@ -755,6 +772,34 @@ I due calcoli sono indipendenti e complementari.</p>
 Influisce solo sul componente verticale <span class="formula-inline">local_dH</span>,
 dove viene applicata correttamente tramite ITALGEO2005 GK2.
 </div>
+
+</section>
+
+<section id="progetto">
+<h2>9 · Progetto QGis di esempio</h2>
+<p>Nel progetto in allegato è presente il file NMEA point di test <strong>bike8_f9p_nmea_gnss_6706</strong> (Test_Piano_Rettilineo.gpkg) con le azioni QGIS attive. Usare Copy/Paste Style per trasferirle a un altro file rilievo GNSS.</p>
+
+<div class="formula-block">
+<strong>Azione: Set 0,0,0 Piano rettilineo.</strong><br>
+UTILIZZO:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Clicca su un punto nel Map Canvas con il layer attivo.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Il punto cliccato diventa l'origine (0,0,0) del piano locale.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Tutti i record del layer vengono aggiornati con X, Y, dH, dist2D.
+</div>
+
+<div class="formula-block">
+<strong>Azione: Cerchi Distanza su 0,0,0</strong><br>
+UTILIZZO:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Clicca su una qualsiasi feature del layer corrente.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;La feature cliccata non viene usata — i cerchi si centrano sempre su LOCAL_LAT / LOCAL_LON (variabili di progetto).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Legge LOCAL_LAT e LOCAL_LON dalle variabili di progetto (impostate dall'azione "Setup 0,0,0 Piano Rettilineo") e disegna cerchi geodetici a 1, 2, 5, 10, 20 km in un layer virtuale.
+</div>
+
+<div class="nota">
+  <p>🔗 <a href="https://bettellam.github.io/Piano_Rettilineo/Piano_Rettilineo_Locale/QGIS_Piano_Rettilineo.zip">Link diretto al progetto</a></p>
+</div>
+
+<p style="font-size:.9rem;color:var(--sub);margin-top:18px;">*Generato con QGIS 3.44 · Python 3.12 · ITALGEO2005 GK2 (EPSG 4258 / 6706) · Claude AI*</p>
 
 </section>
 
